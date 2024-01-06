@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import {NAVER_ID, NAVER_PWD, getStore, jubjub, setStore} from '#preload';
-import {onMounted, ref} from 'vue';
+import { NAVER_ID, NAVER_PWD, getStore, jubjub, setStore } from '#preload';
+import { onMounted, ref } from 'vue';
 
 const naverId = ref<string>('');
 const naverPwd = ref<string>('');

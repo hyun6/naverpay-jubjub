@@ -4,14 +4,18 @@
   "singleQuote": true,
   "overrides": [
     {
-      "files": ["**/*.css", "**/*.scss", "**/*.html"],
+      "files": [
+        "**/*.css",
+        "**/*.scss",
+        "**/*.html"
+      ],
       "options": {
         "singleQuote": false
       }
     }
   ],
   "trailingComma": "all",
-  "bracketSpacing": false,
+  "bracketSpacing": true,
   "arrowParens": "avoid",
   "proseWrap": "never",
   "htmlWhitespaceSensitivity": "strict",

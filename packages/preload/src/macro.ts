@@ -11,7 +11,9 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
   await _naverLogin(page, naverId, naverPassword);
 
   await page.goto(url);
-  const body = await page.locator('#div_content > div.post_view > div.post_content > article > div');
+  const body = await page.locator(
+    '#div_content > div.post_view > div.post_content > article > div',
+  );
   const linkCnt = await body.getByRole('link').count();
   console.log('count: ' + linkCnt);
 
@@ -32,4 +34,3 @@ async function _naverLogin(page: Page, id: string, pwd: string): Promise<void> {
   await page.getByRole('button', { name: '로그인' }).click();
   await page.getByRole('link', { name: '등록', exact: true }).click(); // 로그인 허용 환경 등록
 }
-
