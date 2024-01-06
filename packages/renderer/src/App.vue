@@ -1,54 +1,67 @@
 <script lang="ts" setup>
-import ReactiveCounter from '/@/components/ReactiveCounter.vue';
-import ReactiveHash from '/@/components/ReactiveHash.vue';
-import ElectronVersions from '/@/components/ElectronVersions.vue';
+import {NAVER_ID, NAVER_PWD, getStore, jubjub, setStore} from '#preload';
+import {onMounted, ref} from 'vue';
 
-const APP_VERSION = import.meta.env.VITE_APP_VERSION;
+const naverId = ref<string>('');
+const naverPwd = ref<string>('');
+const url = ref<string>('');
+
+onMounted(() => {
+  // 저장된 아이디 패스워드 자동 입력
+  naverId.value = getStore(NAVER_ID);
+  naverPwd.value = getStore(NAVER_PWD);
+  console.log(`init id: ${naverId.value} pwd: ${naverPwd.value}`);
+
+  // 줍줍 url 에디트에 포커스 주기
+  const urlInput = document.getElementById('url');
+  if (urlInput) {
+    urlInput.focus();
+  }
+});
+
+const onClickJubjub = async () => {
+  setStore(NAVER_ID, naverId.value);
+  setStore(NAVER_PWD, naverPwd.value);
+  await jubjub(url.value, naverId.value, naverPwd.value);
+  onClickConfirm();
+};
+
+const onClickConfirm = () => {
+  window.open('https://new-m.pay.naver.com/pointshistory/list?category=all', '_blank');
+};
 </script>
 
 <template>
-  <img
-    alt="Vue logo"
-    src="../assets/logo.svg"
-    width="150"
-  />
-
-  <p>
-    <!-- Example how to inject current app version to UI -->
-    App version: {{ APP_VERSION }}
-  </p>
-
-  <p>
-    For a guide and recipes on how to configure / customize this project,<br />
-    check out the
-    <a
-      href="https://github.com/cawa-93/vite-electron-builder"
-      target="_blank"
-    >
-      vite-electron-builder documentation
-    </a>
-    .
-  </p>
-
-  <fieldset>
-    <legend>Test Vue Reactivity</legend>
-    <reactive-counter />
-  </fieldset>
-
-  <fieldset>
-    <legend>Test Node.js API</legend>
-    <reactive-hash />
-  </fieldset>
-
-  <fieldset>
-    <legend>Environment</legend>
-    <electron-versions />
-  </fieldset>
-
-  <p>
-    Edit
-    <code>packages/renderer/src/App.vue</code> to test hot module replacement.
-  </p>
+  <div>
+    <!-- 네이버 아이디와 비번을 입력 -->
+    <div>
+      <label>네이버 계정</label>
+      <input
+        id="naver-id"
+        v-model="naverId"
+        placeholder="아이디"
+        type="text"
+      />
+      <input
+        id="naver-pwd"
+        v-model="naverPwd"
+        placeholder="비번"
+        type="password"
+      />
+    </div>
+    <!-- url 입력 -->
+    <div>
+      <label>줍줍 url</label>
+      <input
+        id="url"
+        v-model="url"
+        type="text"
+        @keydown.enter="onClickJubjub"
+      />
+      <button @click="onClickJubjub">줍줍!</button>
+    </div>
+    <button @click="onClickConfirm">줍줍 확인</button>
+  </div>
 </template>
 
 <style>

@@ -1,12 +1,11 @@
 {
-  "name": "vite-electron-builder",
-  "description": "Secure boilerplate for Electron app based on Vite",
+  "name": "naverpay-jubjub",
+  "description": "ㅑ",
   "version": "1.0.2",
   "private": true,
   "author": {
-    "email": "kozackunisoft@gmail.com",
-    "name": "Alex Kozack",
-    "url": "https://kozack.me"
+    "email": "psymhs@gmail.com",
+    "name": "HyunSick Moon"
   },
   "main": "packages/main/dist/index.cjs",
   "scripts": {
@@ -41,7 +40,6 @@
     "eslint-plugin-vue": "9.18.1",
     "happy-dom": "12.10.3",
     "nano-staged": "0.8.0",
-    "playwright": "1.39.0",
     "simple-git-hooks": "2.9.0",
     "typescript": "5.2.2",
     "unplugin-auto-expose": "0.0.5",
@@ -51,6 +49,9 @@
     "vue-tsc": "1.8.22"
   },
   "dependencies": {
-    "electron-updater": "6.1.4"
+    "@playwright/browser-chromium": "^1.40.1",
+    "electron-store": "^8.1.0",
+    "electron-updater": "6.1.4",
+    "playwright": "^1.40.1"
   }
 }

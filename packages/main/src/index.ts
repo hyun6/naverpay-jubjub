@@ -1,7 +1,9 @@
-import {app} from 'electron';
+import { app } from 'electron';
 import './security-restrictions';
-import {restoreOrCreateWindow} from '/@/mainWindow';
-import {platform} from 'node:process';
+import { restoreOrCreateWindow } from '/@/mainWindow';
+import { platform } from 'node:process';
+import { initRenderer } from 'electron-store';
+initRenderer();
 
 /**
  * Prevent electron from running multiple instances.

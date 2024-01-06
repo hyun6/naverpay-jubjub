@@ -1,5 +1,5 @@
-import {app, BrowserWindow} from 'electron';
-import {join, resolve} from 'node:path';
+import { app, BrowserWindow, shell } from 'electron';
+import { join, resolve } from 'node:path';
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
@@ -49,6 +49,12 @@ async function createWindow() {
      */
     await browserWindow.loadFile(resolve(__dirname, '../../renderer/dist/index.html'));
   }
+
+  browserWindow.webContents.setWindowOpenHandler(({ url }) => {
+    console.log('widowopen: ', url);
+    shell.openExternal(url);
+    return { action: 'deny' };
+  });
 
   return browserWindow;
 }

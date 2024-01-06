@@ -3,6 +3,7 @@
   "configurations": [
     {
       "type": "node",
+      "runtimeExecutable": "/Users/moon/.nvm/versions/node/v21.5.0/bin/node",
       "request": "launch",
       "name": "Debug Main Process",
       "skipFiles": ["<node_internals>/**"],
