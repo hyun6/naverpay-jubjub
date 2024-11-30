@@ -22,6 +22,20 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
       await link.click();
     }
   }
+
+  try {
+    // 보험 3번 클릭
+    await page.goto('https://insurance.pay.naver.com/?inflow=point_category');
+    for (let i = 0; i < 3; i++) {
+      await page.getByRole('button').locator('nth=0').click();
+      await page.waitForTimeout(6000);
+      await page.getByRole('button', { name: '뒤로가기' }).click();
+    }
+  } catch (e) {
+    console.log('보험 적립 실패');
+  }
+
+  await browser.close();
 }
 
 async function _naverLogin(page: Page, id: string, pwd: string): Promise<void> {
