@@ -11,16 +11,14 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
   await _naverLogin(page, naverId, naverPassword);
 
   await page.goto(url);
-  const body = await page.locator(
-    '#div_content > div.post_view > div.post_content > article > div',
-  );
+  const body = await page.locator('.post_view');
   const linkCnt = await body.getByRole('link').count();
   console.log('count: ' + linkCnt);
 
   for (let i = 0; i < linkCnt; i++) {
     const link = await body.getByRole('link').nth(i);
     const title = await link.innerText();
-    if (title.includes('naver.com')) {
+    if (title.includes('naver')) {
       await link.click();
     }
   }
