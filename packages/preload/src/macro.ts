@@ -28,8 +28,8 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
 
 async function _naverLogin(page: Page, id: string, pwd: string): Promise<void> {
   await page.goto('https://nid.naver.com/nidlogin.login');
-  await page.getByRole('textbox', { name: '아이디' }).fill(id);
-  await page.getByPlaceholder('비밀번호').fill(pwd);
+  await page.locator('#id').fill(id);
+  await page.locator('#pw').fill(pwd);
   await page.getByText('로그인 상태 유지').click();
   await page.getByRole('button', { name: '로그인' }).click();
   await page.getByRole('link', { name: '등록', exact: true }).click(); // 로그인 허용 환경 등록
