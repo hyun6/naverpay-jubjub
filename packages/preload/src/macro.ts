@@ -15,11 +15,18 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
   const linkCnt = await body.getByRole('link').count();
   console.log('count: ' + linkCnt);
 
+  // 본문의 포인트 적립 링크 하나씩 클릭
+  // 포인트 받기 버튼이 있는 경우 클릭
   for (let i = 0; i < linkCnt; i++) {
     const link = await body.getByRole('link').nth(i);
     const title = await link.innerText();
     if (title.includes('naver')) {
       await link.click();
+      await page.waitForTimeout(1000);
+      const pointButton = await page.getByRole('link', { name: '포인트 받기' });
+      if (await pointButton.isVisible()) {
+        await pointButton.click();
+      }
     }
   }
 
