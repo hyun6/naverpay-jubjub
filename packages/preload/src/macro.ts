@@ -3,32 +3,45 @@ import { chromium } from 'playwright';
 
 export async function jubjub(url: string, naverId: string, naverPassword: string): Promise<void> {
   const browser = await chromium.launch();
-  const page = await browser.newPage({
+  const context = await browser.newContext({
     locale: 'ko-KR',
   });
+  const page = await context.newPage();
 
   console.log(`naverLogin: ${naverId}/${naverPassword}`);
   await _naverLogin(page, naverId, naverPassword);
 
   await page.goto(url);
-  const body = await page.locator('.post_view');
-  const linkCnt = await body.getByRole('link').count();
-  console.log('count: ' + linkCnt);
+  const body = page.locator('.post_view');
+  const links = await body.getByRole('link').all();
 
-  // 본문의 포인트 적립 링크 하나씩 클릭
-  // 포인트 받기 버튼이 있는 경우 클릭
-  for (let i = 0; i < linkCnt; i++) {
-    const link = await body.getByRole('link').nth(i);
+  const naverLinkUrls: string[] = [];
+  for (const link of links) {
     const title = await link.innerText();
-    if (title.includes('naver')) {
-      await link.click();
-      await page.waitForTimeout(1000);
-      const pointButton = await page.getByRole('link', { name: '포인트 받기' });
+    const href = await link.getAttribute('href');
+    if (title.includes('naver') && href) {
+      naverLinkUrls.push(href);
+    }
+  }
+  console.log('naverLinks count: ' + naverLinkUrls.length);
+
+  const tasks = naverLinkUrls.map(async (linkUrl) => {
+    const newPage = await page.context().newPage();
+    try {
+      await newPage.goto(linkUrl);
+      await newPage.waitForTimeout(1000);
+      const pointButton = newPage.getByRole('link', { name: '포인트 받기' });
       if (await pointButton.isVisible()) {
         await pointButton.click();
       }
+    } catch (e) {
+      console.error(`Failed to process ${linkUrl}:`, e);
+    } finally {
+      await newPage.waitForTimeout(5000);
+      await newPage.close();
     }
-  }
+  });
+  await Promise.all(tasks);
 
   try {
     // 보험 3번 클릭

@@ -22,6 +22,10 @@ vi.mock('electron', () => {
   bw.prototype.focus = vi.fn();
   bw.prototype.restore = vi.fn();
 
+  bw.prototype.webContents = {
+    setWindowOpenHandler: vi.fn(),
+  } as unknown as Electron.WebContents;
+
   const app: Pick<Electron.App, 'getAppPath'> = {
     getAppPath(): string {
       return '';
