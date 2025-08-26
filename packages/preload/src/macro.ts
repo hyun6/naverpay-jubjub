@@ -12,7 +12,12 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
   await _naverLogin(page, naverId, naverPassword);
 
   await page.goto(url);
-  const body = page.locator('.post_view');
+  let body = page.locator('.post_view');
+  if ((await body.count()) === 0) {
+    // '.post_view' 로케이터를 찾지 못했을 경우를 위한 폴백
+    // 예: https://damoang.net/economy/53800
+    body = page.locator('#bo_v_con');
+  }
   const links = await body.getByRole('link').all();
 
   const naverLinkUrls: string[] = [];
