@@ -1,0 +1,19 @@
+{
+    "name": "naverpay-jubjub-cli",
+    "version": "1.0.0",
+    "description": "Standalone NaverPay JubJub CLI",
+    "main": "src/cli.ts",
+    "scripts": {
+        "start": "tsx src/cli.ts",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "dotenv": "^16.4.5",
+        "playwright": "1.48.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.12.7",
+        "tsx": "^4.7.2",
+        "typescript": "^5.4.5"
+    }
+}

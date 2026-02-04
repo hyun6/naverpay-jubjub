@@ -2,7 +2,7 @@ import type { Page } from 'playwright';
 import { chromium } from 'playwright';
 
 export async function jubjub(url: string, naverId: string, naverPassword: string): Promise<void> {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ headless: false }); // Show browser
   const context = await browser.newContext({
     locale: 'ko-KR',
   });
@@ -12,13 +12,17 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
   await _naverLogin(page, naverId, naverPassword);
 
   await page.goto(url);
+
   let body = page.locator('.post_view');
   if ((await body.count()) === 0) {
     // '.post_view' 로케이터를 찾지 못했을 경우를 위한 폴백
     // 예: https://damoang.net/economy/53800
-    body = page.locator('#bo_v_con');
+    body = page.locator('#bo_v_con.economy-user-text');
+    console.log('다모앙 링크로 접속: ', await body.count());
   }
   const links = await body.getByRole('link').all();
+
+  console.log('links count: ' + links.length);
 
   const naverLinkUrls: string[] = [];
   for (const link of links) {
