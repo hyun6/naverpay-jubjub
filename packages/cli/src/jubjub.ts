@@ -91,7 +91,7 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
     try {
         console.log('보험 적립 작업 시작...');
         await page.goto('https://insurance.pay.naver.com/?inflow=point_category');
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForTimeout(5000);
 
         // 미션 카드 요소들을 찾음 (클래스명 일부 매칭)
         const missions = page.locator('a[class*="PointMission"]');
