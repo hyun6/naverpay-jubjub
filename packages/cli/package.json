@@ -4,7 +4,7 @@
     "description": "Standalone NaverPay JubJub CLI",
     "main": "src/cli.ts",
     "scripts": {
-        "start": "tsx src/cli.ts",
+        "start": "npx tsx src/cli.ts",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "dependencies": {

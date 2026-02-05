@@ -2,9 +2,18 @@ import type { Page } from 'playwright';
 import { chromium } from 'playwright';
 
 export async function jubjub(url: string, naverId: string, naverPassword: string): Promise<boolean> {
-    const browser = await chromium.launch({ headless: false });
+    const browser = await chromium.launch({
+        headless: true,
+        args: [
+            '--disable-blink-features=AutomationControlled',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-infobars',
+        ],
+    });
     const context = await browser.newContext({
         locale: 'ko-KR',
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
     });
     const page = await context.newPage();
 
@@ -34,7 +43,7 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
     for (const link of links) {
         const title = await link.innerText();
         const href = await link.getAttribute('href');
-        if (title.includes('naver') && href) {
+        if (title.toLowerCase().includes('naver') && href) {
             naverLinkUrls.push(href);
         }
     }
@@ -43,18 +52,28 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
     // 동시 실행 수 제한 (CONCURRENCY 환경변수로 제어, 없으면 전체 병렬)
     const concurrency = process.env.CONCURRENCY ? parseInt(process.env.CONCURRENCY, 10) : naverLinkUrls.length;
 
+    // 성공/실패 카운트
+    let successCount = 0;
+    let failCount = 0;
+
     const processLink = async (linkUrl: string) => {
         const newPage = await page.context().newPage();
         try {
             await newPage.goto(linkUrl);
-            await newPage.waitForTimeout(1000);
-            const pointButton = newPage.getByRole('link', { name: '포인트 받기' });
-            if (await pointButton.isVisible()) {
+            await newPage.waitForTimeout(2000);
+            // 정규표현식을 사용하여 '포인트 받기', '혜택받기', '클릭 ?원' 등 다양한 명칭에 대응
+            const pointButton = newPage.getByRole('link', { name: /포인트.*받기|혜택.*받기|클릭.*원/ });
+            try {
+                await pointButton.waitFor({ state: 'visible', timeout: 5000 });
                 await pointButton.click();
-                console.log(`포인트 받기 클릭: ${linkUrl}`);
+                console.log(`포인트 받기 클릭 성공: ${linkUrl}`);
+                successCount++;
+            } catch {
+                console.log(`포인트 버튼 미노출 (이미 받았거나 다른 형식): ${linkUrl}`);
             }
         } catch (e) {
             console.error(`Failed to process ${linkUrl}:`, e);
+            failCount++;
         } finally {
             await newPage.waitForTimeout(5000);
             await newPage.close();
@@ -67,21 +86,41 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
         await Promise.all(batch.map(processLink));
     }
 
+    console.log(`\n=== 포인트 적립 결과: 성공 ${successCount}건, 실패 ${failCount}건 ===\n`);
+
     try {
-        // 보험 3번 클릭
+        console.log('보험 적립 작업 시작...');
         await page.goto('https://insurance.pay.naver.com/?inflow=point_category');
-        for (let i = 0; i < 3; i++) {
-            await page.getByRole('button').locator('nth=0').click();
+        await page.waitForLoadState('networkidle', { timeout: 10000 });
+
+        // 미션 카드 요소들을 찾음 (클래스명 일부 매칭)
+        const missions = page.locator('a[class*="PointMission"]');
+        const count = await missions.count();
+        console.log(`발견된 보험 미션: ${count}개`);
+
+        for (let i = 0; i < Math.min(count, 3); i++) {
+            console.log(`보험 미션 ${i + 1} 시도 중...`);
+            await missions.nth(i).click();
             await page.waitForTimeout(6000);
-            await page.getByRole('button', { name: '뒤로가기' }).click();
+
+            // 미션 상세 페이지에서도 포인트 받기 버튼이 있다면 시도
+            const detailPointBtn = page.getByRole('link', { name: /포인트.*받기|혜택.*받기/ });
+            if (await detailPointBtn.isVisible()) {
+                await detailPointBtn.click();
+                await page.waitForTimeout(5000);
+            }
+
+            await page.goBack(); // 브라우저 백으로 복귀
+            await page.waitForTimeout(5000);
         }
     } catch (e) {
-        console.log('보험 적립 실패');
+        console.error('보험 적립 중 오류 발생:', e);
     }
 
     await browser.close();
     return true;
 }
+
 
 async function _naverLogin(page: Page, id: string, pwd: string): Promise<boolean> {
     try {
