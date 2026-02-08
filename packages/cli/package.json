@@ -5,15 +5,19 @@
     "main": "src/cli.ts",
     "scripts": {
         "start": "npx tsx src/cli.ts",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "vitest run"
     },
     "dependencies": {
         "dotenv": "^16.4.5",
-        "playwright": "1.48.0"
+        "moment-timezone": "^0.6.0",
+        "playwright": "1.48.0",
+        "winston": "^3.19.0",
+        "winston-daily-rotate-file": "^5.0.0"
     },
     "devDependencies": {
-        "@types/node": "^20.12.7",
+        "@types/node": "^20.19.33",
         "tsx": "^4.7.2",
-        "typescript": "^5.4.5"
+        "typescript": "^5.4.5",
+        "vitest": "^4.0.18"
     }
 }

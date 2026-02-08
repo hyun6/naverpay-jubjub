@@ -1,5 +1,6 @@
 import type { Page } from 'playwright';
 import { chromium } from 'playwright';
+import { logger } from './logger';
 
 export async function jubjub(url: string, naverId: string, naverPassword: string): Promise<boolean> {
     const browser = await chromium.launch({
@@ -17,14 +18,14 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
     });
     const page = await context.newPage();
 
-    console.log(`naverLogin: ${naverId}`);
+    logger.info(`naverLogin: ${naverId}`);
     const loginSuccess = await _naverLogin(page, naverId, naverPassword);
     if (!loginSuccess) {
-        console.error('로그인 실패');
+        logger.error('로그인 실패');
         await browser.close();
         return false;
     }
-    console.log('로그인 성공');
+    logger.info('로그인 성공');
 
     await page.goto(url);
 
@@ -33,11 +34,11 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
         // '.post_view' 로케이터를 찾지 못했을 경우를 위한 폴백
         // 예: https://damoang.net/economy/53800
         body = page.locator('#bo_v_con.economy-user-text');
-        console.log('다모앙 링크로 접속: ', await body.count());
+        logger.info('다모앙 링크로 접속: ', await body.count());
     }
     const links = await body.getByRole('link').all();
 
-    console.log('links count: ' + links.length);
+    logger.info('links count: ' + links.length);
 
     const naverLinkUrls: string[] = [];
     for (const link of links) {
@@ -47,7 +48,7 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
             naverLinkUrls.push(href);
         }
     }
-    console.log('naverLinks count: ' + naverLinkUrls.length);
+    logger.info('naverLinks count: ' + naverLinkUrls.length);
 
     // 동시 실행 수 제한 (CONCURRENCY 환경변수로 제어, 없으면 전체 병렬)
     const concurrency = process.env.CONCURRENCY ? parseInt(process.env.CONCURRENCY, 10) : naverLinkUrls.length;
@@ -66,13 +67,13 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
             try {
                 await pointButton.waitFor({ state: 'visible', timeout: 5000 });
                 await pointButton.click();
-                console.log(`포인트 받기 클릭 성공: ${linkUrl}`);
+                logger.info(`포인트 받기 클릭 성공: ${linkUrl}`);
                 successCount++;
             } catch {
-                console.log(`포인트 버튼 미노출 (이미 받았거나 다른 형식): ${linkUrl}`);
+                logger.info(`포인트 버튼 미노출 (이미 받았거나 다른 형식): ${linkUrl}`);
             }
         } catch (e) {
-            console.error(`Failed to process ${linkUrl}:`, e);
+            logger.error(`Failed to process ${linkUrl}:`, e);
             failCount++;
         } finally {
             await newPage.waitForTimeout(5000);
@@ -86,20 +87,20 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
         await Promise.all(batch.map(processLink));
     }
 
-    console.log(`\n=== 포인트 적립 결과: 성공 ${successCount}건, 실패 ${failCount}건 ===\n`);
+    logger.info(`\n=== 포인트 적립 결과: 성공 ${successCount}건, 실패 ${failCount}건 ===\n`);
 
     try {
-        console.log('보험 적립 작업 시작...');
+        logger.info('보험 적립 작업 시작...');
         await page.goto('https://insurance.pay.naver.com/?inflow=point_category');
         await page.waitForTimeout(5000);
 
         // 미션 카드 요소들을 찾음 (클래스명 일부 매칭)
         const missions = page.locator('a[class*="PointMission"]');
         const count = await missions.count();
-        console.log(`발견된 보험 미션: ${count}개`);
+        logger.info(`발견된 보험 미션: ${count}개`);
 
-        for (let i = 0; i < Math.min(count, 3); i++) {
-            console.log(`보험 미션 ${i + 1} 시도 중...`);
+        for (let i = 0; i < Math.min(count, 5); i++) {
+            logger.info(`보험 미션 ${i + 1} 시도 중...`);
             await missions.nth(i).click();
             await page.waitForTimeout(6000);
 
@@ -114,7 +115,7 @@ export async function jubjub(url: string, naverId: string, naverPassword: string
             await page.waitForTimeout(5000);
         }
     } catch (e) {
-        console.error('보험 적립 중 오류 발생:', e);
+        logger.error('보험 적립 중 오류 발생:', e);
     }
 
     await browser.close();
@@ -136,19 +137,19 @@ async function _naverLogin(page: Page, id: string, pwd: string): Promise<boolean
             await registerBtn.waitFor({ state: 'visible', timeout: 3000 });
             await registerBtn.click();
         } catch {
-            console.log('기기 등록 단계 스킵');
+            logger.info('기기 등록 단계 스킵');
         }
 
         // 로그인 성공 여부 확인 (네이버 메인 또는 다른 페이지로 이동했는지)
         await page.waitForLoadState('domcontentloaded');
         const currentUrl = page.url();
         if (currentUrl.includes('nidlogin.login')) {
-            console.log('로그인 페이지에서 벗어나지 못함');
+            logger.info('로그인 페이지에서 벗어나지 못함');
             return false;
         }
         return true;
     } catch (e) {
-        console.error('로그인 중 오류:', e);
+        logger.error('로그인 중 오류:', e);
         return false;
     }
 }
